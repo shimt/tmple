@@ -1,0 +1,86 @@
+git = git
+
+go = go
+gobuildflags = -v
+gogetflags = -v
+goinstallflags = -v 
+gocleanflags = -v
+gogenerateflags = -x
+gotestflags = 
+
+dep = dep
+depensureflags =
+
+golinter = gometalinter.v2.exe
+golinterflags =
+
+rule go-build
+    command = $go build $gobuildflags $package
+    description = BUILD $package
+
+rule go-fix
+    command = $go fix $package
+    description = FIX $package
+
+rule go-get
+    command = $go get $gogetflags $package
+    description = GET $package
+
+rule go-update
+    command = $go get $gogetflags -u $package
+    description = UPDATE $package
+
+rule go-install
+    command = $go install $goinstallflags $package
+    description = INSTALL $package
+
+rule go-generate
+    command = $go generate $gogenerateflags $package $in
+    description = GENERATE $package$in
+
+rule go-test
+    command = $go test $gotestflags $package
+    description = TEST $package
+
+rule go-clean
+    command = $go clean $gocleanflags $package
+    description = CLEAN $package
+
+rule dep-ensure
+    command = $dep ensure $depensureflags
+    description = DEP ensure $depensureflags
+
+rule go-lint
+    command = $golinter $golinterflags $package
+    description = LINT $package
+
+build install-dep: go-update
+    package = github.com/golang/dep/cmd/dep
+
+build install-stringer: go-update
+    package = golang.org/x/tools/cmd/stringer
+
+build bootstrap: phony || install-dep install-stringer
+
+build fix: go-fix
+
+build generate: go-generate
+    package = ./...
+
+build build: go-build || generate
+    package = ./...
+
+build test: go-test || generate
+    package = ./...
+
+build install: go-install || test
+
+build clean: go-clean
+
+build update-vendor: dep-ensure
+    depensureflags = -update
+
+build lint: go-lint
+    package = ./...
+
+default build
