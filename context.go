@@ -34,7 +34,7 @@ func (c *tmpleContext) absPath(path string) (string, error) {
 		return path, nil
 	}
 
-	p := filepath.Clean(filepath.Join(c.dir.getcwd(), path))
+	p := filepath.Clean(filepath.Join(c.dir.getCwd(), path))
 
 	return p, nil
 }

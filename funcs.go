@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	errUnsupportArgumentType = errors.New("unsupport argument type")
+	errUnsupportedArgumentType = errors.New("unsupported argument type")
 )
 
 func (c *tmpleContext) funcMap() template.FuncMap {
@@ -49,7 +49,7 @@ func argToStringSlice(args []interface{}) ([]string, error) {
 		case []string:
 			l = append(l, v...)
 		default:
-			return nil, errUnsupportArgumentType
+			return nil, errUnsupportedArgumentType
 		}
 	}
 
@@ -131,7 +131,7 @@ func (c *tmpleContext) tfIncludeTemplate(args ...interface{}) (string, error) {
 		c.fullpath[tn] = fp
 
 		err = c.dir.run(filepath.Dir(fp), func() error {
-			c.log.Debugf("tfIncludeTemplate: change working directory %s", c.dir.getcwd())
+			c.log.Debugf("tfIncludeTemplate: change working directory %s", c.dir.getCwd())
 			c.log.Debugf("tfIncludeTemplate: execute template %s", tn)
 
 			return c.tmpl.ExecuteTemplate(b, p, c.data)

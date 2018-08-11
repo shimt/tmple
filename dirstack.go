@@ -86,6 +86,6 @@ func (s *dirStack) run(path string, f func() error) (err error) {
 	return nil
 }
 
-func (s *dirStack) getcwd() (path string) {
+func (s *dirStack) getCwd() (path string) {
 	return s.cwd
 }
