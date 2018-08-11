@@ -53,8 +53,13 @@ func (c *tmpleContext) makeTemplateName(path string) (string, error) {
 	return p, nil
 }
 
-func (c *tmpleContext) Execute(out io.Writer) (err error) {
-	return c.dir.run(c.base, func() error {
-		return c.tmpl.Execute(out, c.data)
+func (c *tmpleContext) Execute(out io.Writer, base string, tmpl *template.Template, data map[string]interface{}) (err error) {
+	c.tmpl = tmpl
+	c.data = data
+	c.base = base
+	c.fullpath = map[string]string{}
+
+	return c.dir.run(base, func() error {
+		return tmpl.Execute(out, data)
 	})
 }

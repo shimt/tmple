@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"text/template"
 
 	"github.com/pkg/errors"
 	"github.com/shimt/go-simplecli"
@@ -29,11 +30,12 @@ func init() {
 	cli.CommandLine.StringVarP(&cliInstruction.out, "out", "o", "@STDOUT", "output")
 }
 
-func parseTemplate(tc *tmpleContext) {
+func parseTemplate(tc *tmpleContext) (string, *template.Template) {
 	var (
 		err error
 		in  io.ReadCloser
 		fp  string
+		fd  string
 	)
 
 	fn := cliInstruction.in
@@ -43,14 +45,14 @@ func parseTemplate(tc *tmpleContext) {
 		in, err = f.readCloser()
 		cli.Exit1IfError(err)
 
-		tc.base, err = os.Getwd()
+		fd, err = os.Getwd()
 		cli.Exit1IfError(err)
 	} else {
 		fp = fn
 		in, err = os.Open(fp)
 		cli.Exit1IfError(err)
 
-		tc.base, err = filepath.Abs(filepath.Dir(fp))
+		fd, err = filepath.Abs(filepath.Dir(fp))
 		cli.Exit1IfError(err)
 	}
 	defer in.Close()
@@ -61,7 +63,7 @@ func parseTemplate(tc *tmpleContext) {
 	t, err := tc.newTemplate(fn).Parse(string(b))
 	cli.Exit1IfError(err)
 
-	tc.tmpl = t
+	return fd, t
 }
 
 func mergeData(dst map[string]interface{}, src map[string]interface{}) {
@@ -139,22 +141,20 @@ func main() {
 
 	data["Arguments"] = args
 
-	tc := &tmpleContext{
-		data:     data,
-		fullpath: map[string]string{},
-		log:      cli.Log,
-	}
+	tc := &tmpleContext{log: cli.Log}
 
-	parseTemplate(tc)
+	fd, tmpl := parseTemplate(tc)
 
 	b := &bytes.Buffer{}
 
-	err = tc.Execute(b)
+	err = tc.Execute(b, fd, tmpl, data)
 	cli.Exit1IfError(err)
 
 	out := openOutput()
 	defer out.Close()
-	out.Write(b.Bytes())
+
+	_, err = b.WriteTo(out)
+	cli.Exit1IfError(err)
 
 	cli.Exit(0)
 }
