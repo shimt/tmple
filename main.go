@@ -30,7 +30,7 @@ func init() {
 	cli.CommandLine.StringVarP(&cliInstruction.out, "out", "o", "@STDOUT", "output")
 }
 
-func parseTemplate(tc *tmpleContext) (string, *template.Template) {
+func parseTemplate(tc *tmpleRuntime) (string, *template.Template) {
 	var (
 		err error
 		in  io.ReadCloser
@@ -141,7 +141,7 @@ func main() {
 
 	data["Arguments"] = args
 
-	tc := &tmpleContext{log: cli.Log}
+	tc := &tmpleRuntime{log: cli.Log}
 
 	fd, tmpl := parseTemplate(tc)
 

@@ -19,7 +19,7 @@ var (
 	errUnsupportedArgumentType = errors.New("unsupported argument type")
 )
 
-func (c *tmpleContext) funcMap() template.FuncMap {
+func (c *tmpleRuntime) funcMap() template.FuncMap {
 	return template.FuncMap{
 		"glob":            c.tfGlob,
 		"includeFile":     c.tfIncludeFile,
@@ -28,7 +28,7 @@ func (c *tmpleContext) funcMap() template.FuncMap {
 	}
 }
 
-func (c *tmpleContext) tfGlob(glob string) ([]string, error) {
+func (c *tmpleRuntime) tfGlob(glob string) ([]string, error) {
 	m, err := filepath.Glob(glob)
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func argToStringSlice(args []interface{}) ([]string, error) {
 	return l, nil
 }
 
-func (c *tmpleContext) tfIncludeFile(args ...interface{}) (string, error) {
+func (c *tmpleRuntime) tfIncludeFile(args ...interface{}) (string, error) {
 	paths, err := argToStringSlice(args)
 	if err != nil {
 		return "", err
@@ -75,7 +75,7 @@ func (c *tmpleContext) tfIncludeFile(args ...interface{}) (string, error) {
 	return s.String(), nil
 }
 
-func (c *tmpleContext) tfIncludeTextFile(args ...interface{}) (string, error) {
+func (c *tmpleRuntime) tfIncludeTextFile(args ...interface{}) (string, error) {
 	paths, err := argToStringSlice(args)
 	if err != nil {
 		return "", err
@@ -97,7 +97,7 @@ func (c *tmpleContext) tfIncludeTextFile(args ...interface{}) (string, error) {
 	return s.String(), nil
 }
 
-func (c *tmpleContext) tfIncludeTemplate(args ...interface{}) (string, error) {
+func (c *tmpleRuntime) tfIncludeTemplate(args ...interface{}) (string, error) {
 	paths, err := argToStringSlice(args)
 	if err != nil {
 		return "", err

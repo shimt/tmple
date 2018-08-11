@@ -13,7 +13,7 @@ import (
 	"github.com/shimt/go-logif"
 )
 
-type tmpleContext struct {
+type tmpleRuntime struct {
 	tmpl *template.Template
 
 	base string
@@ -25,11 +25,11 @@ type tmpleContext struct {
 	log logif.LeveledLogger
 }
 
-func (c *tmpleContext) newTemplate(name string) *template.Template {
+func (c *tmpleRuntime) newTemplate(name string) *template.Template {
 	return template.New(name).Funcs(c.funcMap())
 }
 
-func (c *tmpleContext) makeAbsPath(path string) (string, error) {
+func (c *tmpleRuntime) makeAbsPath(path string) (string, error) {
 	if filepath.IsAbs(path) {
 		return path, nil
 	}
@@ -39,7 +39,7 @@ func (c *tmpleContext) makeAbsPath(path string) (string, error) {
 	return p, nil
 }
 
-func (c *tmpleContext) makeTemplateName(path string) (string, error) {
+func (c *tmpleRuntime) makeTemplateName(path string) (string, error) {
 	p, err := c.makeAbsPath(path)
 	if err != nil {
 		return "", errors.Wrap(err, "template name error")
@@ -53,7 +53,7 @@ func (c *tmpleContext) makeTemplateName(path string) (string, error) {
 	return p, nil
 }
 
-func (c *tmpleContext) Execute(out io.Writer, base string, tmpl *template.Template, data map[string]interface{}) (err error) {
+func (c *tmpleRuntime) Execute(out io.Writer, base string, tmpl *template.Template, data map[string]interface{}) (err error) {
 	c.tmpl = tmpl
 	c.data = data
 	c.base = base
