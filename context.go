@@ -29,7 +29,7 @@ func (c *tmpleContext) newTemplate(name string) *template.Template {
 	return template.New(name).Funcs(c.funcMap())
 }
 
-func (c *tmpleContext) absPath(path string) (string, error) {
+func (c *tmpleContext) makeAbsPath(path string) (string, error) {
 	if filepath.IsAbs(path) {
 		return path, nil
 	}
@@ -40,7 +40,7 @@ func (c *tmpleContext) absPath(path string) (string, error) {
 }
 
 func (c *tmpleContext) makeTemplateName(path string) (string, error) {
-	p, err := c.absPath(path)
+	p, err := c.makeAbsPath(path)
 	if err != nil {
 		return "", errors.Wrap(err, "template name error")
 	}

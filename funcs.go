@@ -106,7 +106,7 @@ func (c *tmpleContext) tfIncludeTemplate(args ...interface{}) (string, error) {
 	b := &bytes.Buffer{}
 
 	for _, p := range paths {
-		fp, err := c.absPath(p)
+		fp, err := c.makeAbsPath(p)
 		if err != nil {
 			return "", err
 		}
