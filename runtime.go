@@ -39,13 +39,22 @@ func (c *tmpleRuntime) makeAbsPath(path string) (string, error) {
 	return p, nil
 }
 
+func (c *tmpleRuntime) makeRelPath(path string) (string, error) {
+	p, err := filepath.Rel(c.base, path)
+	if err != nil {
+		return "", err
+	}
+
+	return p, nil
+}
+
 func (c *tmpleRuntime) makeTemplateName(path string) (string, error) {
 	p, err := c.makeAbsPath(path)
 	if err != nil {
 		return "", errors.Wrap(err, "template name error")
 	}
 
-	p, err = filepath.Rel(c.base, p)
+	p, err = c.makeRelPath(p)
 	if err != nil {
 		return "", errors.Wrap(err, "template name error")
 	}
