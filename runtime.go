@@ -83,11 +83,7 @@ func (c *tmpleRuntime) readFileToBuffer(buffer *bytes.Buffer, path string) (err 
 	}()
 
 	_, err = buffer.ReadFrom(f)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (c *tmpleRuntime) processFile(path string, processor func(*bytes.Buffer) error) (err error) {

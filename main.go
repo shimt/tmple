@@ -55,7 +55,10 @@ func parseTemplate(tc *tmpleRuntime) (string, *template.Template) {
 		fd, err = filepath.Abs(filepath.Dir(fp))
 		cli.Exit1IfError(err)
 	}
-	defer in.Close()
+	defer func() {
+		err = in.Close()
+		cli.Exit1IfError(err)
+	}()
 
 	b, err := ioutil.ReadAll(in)
 	cli.Exit1IfError(err)
@@ -151,7 +154,10 @@ func main() {
 	cli.Exit1IfError(err)
 
 	out := openOutput()
-	defer out.Close()
+	defer func() {
+		err = out.Close()
+		cli.Exit1IfError(err)
+	}()
 
 	_, err = b.WriteTo(out)
 	cli.Exit1IfError(err)

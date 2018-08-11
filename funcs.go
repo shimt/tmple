@@ -124,11 +124,8 @@ func (c *tmpleRuntime) tfIncludeTemplate(args ...interface{}) (string, error) {
 			c.log.Debugf("tfIncludeTemplate: load template %s (%s)", tn, fp)
 
 			_, err = c.tmpl.New(tn).Parse(tb.String())
-			if err != nil {
-				return err
-			}
 
-			return nil
+			return err
 		})
 
 		c.fullpath[tn] = fp

@@ -111,7 +111,9 @@ func (a fileArg) blob() (blob []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rc.Close()
+	defer func() {
+		err = rc.Close()
+	}()
 
 	blob, err = ioutil.ReadAll(rc)
 	return blob, errors.Wrap(err, string(a))

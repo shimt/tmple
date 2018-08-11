@@ -79,11 +79,7 @@ func (s *dirStack) run(path string, f func() error) (err error) {
 		}
 	}()
 
-	if err = f(); err != nil {
-		return err
-	}
-
-	return nil
+	return f()
 }
 
 func (s *dirStack) getCwd() (path string) {
