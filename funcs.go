@@ -6,10 +6,8 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
 	"path/filepath"
 	"sort"
-	"strings"
 	"text/template"
 
 	"github.com/pkg/errors"
@@ -62,17 +60,18 @@ func (c *tmpleRuntime) tfIncludeFile(args ...interface{}) (string, error) {
 		return "", err
 	}
 
-	s := strings.Builder{}
+	r := bufferPool.Get().(*bytes.Buffer)
+	r.Reset()
+	defer bufferPool.Put(r)
 
 	for _, p := range paths {
-		b, err := ioutil.ReadFile(p)
+		err = c.readFileToBuffer(r, p)
 		if err != nil {
 			return "", err
 		}
-		s.Write(b)
 	}
 
-	return s.String(), nil
+	return r.String(), nil
 }
 
 func (c *tmpleRuntime) tfIncludeTextFile(args ...interface{}) (string, error) {
@@ -81,20 +80,23 @@ func (c *tmpleRuntime) tfIncludeTextFile(args ...interface{}) (string, error) {
 		return "", err
 	}
 
-	s := strings.Builder{}
+	r := bufferPool.Get().(*bytes.Buffer)
+	r.Reset()
+	defer bufferPool.Put(r)
 
 	for _, p := range paths {
-		b, err := ioutil.ReadFile(p)
+		err = c.readFileToBuffer(r, p)
 		if err != nil {
 			return "", err
 		}
-		s.Write(b)
+
+		b := r.Bytes()
 		if c := b[len(b)-1]; c != '\r' && c != '\n' {
-			s.WriteByte('\n')
+			r.WriteByte('\n')
 		}
 	}
 
-	return s.String(), nil
+	return r.String(), nil
 }
 
 func (c *tmpleRuntime) tfIncludeTemplate(args ...interface{}) (string, error) {
@@ -103,7 +105,9 @@ func (c *tmpleRuntime) tfIncludeTemplate(args ...interface{}) (string, error) {
 		return "", err
 	}
 
-	b := &bytes.Buffer{}
+	r := bufferPool.Get().(*bytes.Buffer)
+	r.Reset()
+	defer bufferPool.Put(r)
 
 	for _, p := range paths {
 		fp, err := c.makeAbsPath(p)
@@ -116,17 +120,16 @@ func (c *tmpleRuntime) tfIncludeTemplate(args ...interface{}) (string, error) {
 			return "", err
 		}
 
-		tb, err := ioutil.ReadFile(fp)
-		if err != nil {
-			return "", err
-		}
+		err = c.processFile(fp, func(tb *bytes.Buffer) error {
+			c.log.Debugf("tfIncludeTemplate: load template %s (%s)", tn, fp)
 
-		c.log.Debugf("tfIncludeTemplate: load template %s (%s)", tn, fp)
+			_, err = c.tmpl.New(tn).Parse(tb.String())
+			if err != nil {
+				return err
+			}
 
-		_, err = c.tmpl.New(tn).Parse(string(tb))
-		if err != nil {
-			return "", err
-		}
+			return nil
+		})
 
 		c.fullpath[tn] = fp
 
@@ -134,12 +137,12 @@ func (c *tmpleRuntime) tfIncludeTemplate(args ...interface{}) (string, error) {
 			c.log.Debugf("tfIncludeTemplate: change working directory %s", c.dir.getCwd())
 			c.log.Debugf("tfIncludeTemplate: execute template %s", tn)
 
-			return c.tmpl.ExecuteTemplate(b, p, c.data)
+			return c.tmpl.ExecuteTemplate(r, p, c.data)
 		})
 		if err != nil {
 			return "", err
 		}
 	}
 
-	return string(b.Bytes()), nil
+	return r.String(), nil
 }

@@ -5,12 +5,23 @@
 package main
 
 import (
+	"bytes"
 	"io"
+	"os"
 	"path/filepath"
+	"sync"
 	"text/template"
 
 	"github.com/pkg/errors"
 	"github.com/shimt/go-logif"
+)
+
+var (
+	bufferPool = sync.Pool{
+		New: func() interface{} {
+			return bytes.NewBuffer(make([]byte, 0, os.Getpagesize()))
+		},
+	}
 )
 
 type tmpleRuntime struct {
@@ -60,6 +71,35 @@ func (c *tmpleRuntime) makeTemplateName(path string) (string, error) {
 	}
 
 	return p, nil
+}
+
+func (c *tmpleRuntime) readFileToBuffer(buffer *bytes.Buffer, path string) (err error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = f.Close()
+	}()
+
+	_, err = buffer.ReadFrom(f)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *tmpleRuntime) processFile(path string, processor func(*bytes.Buffer) error) (err error) {
+	b := bufferPool.Get().(*bytes.Buffer)
+	b.Reset()
+	defer bufferPool.Put(b)
+
+	if err = c.readFileToBuffer(b, path); err != nil {
+		return err
+	}
+
+	return processor(b)
 }
 
 func (c *tmpleRuntime) Execute(out io.Writer, base string, tmpl *template.Template, data map[string]interface{}) (err error) {
