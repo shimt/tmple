@@ -92,7 +92,9 @@ func (c *tmpleRuntime) tfIncludeTextFile(args ...interface{}) (string, error) {
 
 		b := r.Bytes()
 		if c := b[len(b)-1]; c != '\r' && c != '\n' {
-			r.WriteByte('\n')
+			if e := r.WriteByte('\n'); e != nil {
+				return "", e
+			}
 		}
 	}
 
