@@ -60,8 +60,7 @@ func (c *tmpleRuntime) tfIncludeFile(args ...interface{}) (string, error) {
 		return "", err
 	}
 
-	r := bufferPool.Get().(*bytes.Buffer)
-	r.Reset()
+	r := bufferPool.Get()
 	defer bufferPool.Put(r)
 
 	for _, p := range paths {
@@ -80,8 +79,7 @@ func (c *tmpleRuntime) tfIncludeTextFile(args ...interface{}) (string, error) {
 		return "", err
 	}
 
-	r := bufferPool.Get().(*bytes.Buffer)
-	r.Reset()
+	r := bufferPool.Get()
 	defer bufferPool.Put(r)
 
 	for _, p := range paths {
@@ -107,8 +105,7 @@ func (c *tmpleRuntime) tfIncludeTemplate(args ...interface{}) (string, error) {
 		return "", err
 	}
 
-	r := bufferPool.Get().(*bytes.Buffer)
-	r.Reset()
+	r := bufferPool.Get()
 	defer bufferPool.Put(r)
 
 	for _, p := range paths {

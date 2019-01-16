@@ -9,19 +9,15 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"sync"
 	"text/template"
 
 	"github.com/pkg/errors"
+	"github.com/shimt/go-bufpool"
 	"github.com/shimt/go-logif"
 )
 
 var (
-	bufferPool = sync.Pool{
-		New: func() interface{} {
-			return bytes.NewBuffer(make([]byte, 0, os.Getpagesize()))
-		},
-	}
+	bufferPool = bufpool.NewBytesBufferPool(os.Getpagesize(), 0)
 )
 
 type tmpleRuntime struct {
@@ -87,8 +83,7 @@ func (c *tmpleRuntime) readFileToBuffer(buffer *bytes.Buffer, path string) (err 
 }
 
 func (c *tmpleRuntime) processFile(path string, processor func(*bytes.Buffer) error) (err error) {
-	b := bufferPool.Get().(*bytes.Buffer)
-	b.Reset()
+	b := bufferPool.Get()
 	defer bufferPool.Put(b)
 
 	if err = c.readFileToBuffer(b, path); err != nil {
