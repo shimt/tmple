@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"path/filepath"
 	"sort"
+	"strings"
 	"text/template"
 
 	"github.com/pkg/errors"
@@ -20,6 +21,7 @@ var (
 func (c *tmpleRuntime) funcMap() template.FuncMap {
 	return template.FuncMap{
 		"glob":            c.tfGlob,
+		"split":           c.tfSplit,
 		"includeFile":     c.tfIncludeFile,
 		"includeTemplate": c.tfIncludeTemplate,
 		"includeTextFile": c.tfIncludeTextFile,
@@ -35,6 +37,12 @@ func (c *tmpleRuntime) tfGlob(glob string) ([]string, error) {
 	sort.Strings(m)
 
 	return m, nil
+}
+
+func (c *tmpleRuntime) tfSplit(text, sep string) ([]string, error) {
+	s := strings.Split(text, sep)
+	return s, nil
+
 }
 
 func argToStringSlice(args []interface{}) ([]string, error) {
